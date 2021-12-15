@@ -181,7 +181,7 @@ class Board:
         if direction == 'left' and self.piece.x > 0:
             for i in range(self.piece.height):
                 for j in range(self.piece.width):
-                    if self.board[self.piece.x + j][self.piece.y + i - 1] != 0:
+                    if self.board[self.piece.y + j][self.piece.x + i - 1] != 0:
                         return False
         if direction == 'right' and self.piece.x == self.width - self.piece.width:
             return False
