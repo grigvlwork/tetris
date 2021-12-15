@@ -131,7 +131,7 @@ class Board:
                 self.frequency[piece_type] += 1
                 self.next_piece = self.create_piece(piece_type)
             else:
-                piece_types = [x[0] for x in list(self.frequency) if x[1] == min(self.frequency.items())]
+                piece_types = [x[0] for x in list(self.frequency.items()) if x[1] == min(self.frequency.values())]
                 shuffle(piece_types)
                 piece_type = self.pool.pop()
                 self.frequency[piece_type] += 1
@@ -181,7 +181,9 @@ class Board:
         if direction == 'left' and self.piece.x > 0:
             for i in range(self.piece.height):
                 for j in range(self.piece.width):
-                    if self.board[self.piece.y + j][self.piece.x + i - 1] != 0:
+                    if self.piece.matrix[i][j] == 0:
+                        continue
+                    if self.board[self.piece.y + i][self.piece.x + j - 1] != 0:
                         return False
         if direction == 'right' and self.piece.x == self.width - self.piece.width:
             return False
@@ -196,12 +198,20 @@ class Board:
             self.new_piece()
             return False
         if direction == 'down':
+            flag = False
             for i in range(self.piece.height):
                 for j in range(self.piece.width):
+                    # print(i, j, self.piece.matrix, self.piece)
+                    if self.piece.matrix[i][j] == 0:
+                        continue
                     if self.board[self.piece.y + i + 1][self.piece.x + j] != 0:
                         self.fix_piece()
                         self.check_fills()
                         self.new_piece()
+                        flag = True
+                        break
+                if flag:
+                    break
         return True
 
     def can_rotate(self, direction):
@@ -298,12 +308,14 @@ class Piece_T(Piece):
             self.width = 2
             self.height = 3
 
+
 class Piece_L(Piece):
     def __init__(self, position):
         super().__init__(position)
         self.matrix = [[0, 0, 1], [1, 1, 1]]
         self.width = 3
         self.height = 2
+        self.state = 0
 
     def rotate(self, direction):
         if direction == 'right':
@@ -328,16 +340,35 @@ class Piece_L(Piece):
             self.height = 3
 
 
-
 class Piece_J(Piece):
     def __init__(self, position):
         super().__init__(position)
         self.matrix = [[1, 0, 0], [1, 1, 1]]
         self.width = 3
         self.height = 2
+        self.state = 0
 
     def rotate(self, direction):
-        pass
+        if direction == 'right':
+            self.state = (self.state + 1) % 4
+        else:
+            self.state = (self.state + 3) % 4
+        if self.state == 0:
+            self.matrix = [[1, 0, 0], [1, 1, 1]]
+            self.width = 3
+            self.height = 2
+        elif self.state == 1:
+            self.matrix = [[1, 1], [1, 0], [1, 0]]
+            self.width = 2
+            self.height = 3
+        elif self.state == 2:
+            self.matrix = [[1, 1, 1], [0, 0, 1]]
+            self.width = 3
+            self.height = 2
+        elif self.state == 3:
+            self.matrix = [[0, 1], [0, 1], [1, 1]]
+            self.width = 2
+            self.height = 3
 
 
 class Piece_S(Piece):
@@ -346,9 +377,19 @@ class Piece_S(Piece):
         self.matrix = [[0, 1, 1], [1, 1, 0]]
         self.width = 3
         self.height = 2
+        self.state = 0
 
     def rotate(self, direction):
-        pass
+        if self.state == 0:
+            self.matrix = [[1, 0], [1, 1], [0, 1]]
+            self.width = 2
+            self.height = 3
+            self.state = 1
+        else:
+            self.matrix = [[0, 1, 1], [1, 1, 0]]
+            self.width = 3
+            self.height = 2
+            self.state = 0
 
 
 class Piece_Z(Piece):
@@ -357,9 +398,19 @@ class Piece_Z(Piece):
         self.matrix = [[1, 1, 0], [0, 1, 1]]
         self.width = 3
         self.height = 2
+        self.state = 0
 
     def rotate(self, direction):
-        pass
+        if self.state == 0:
+            self.matrix = [[0, 1], [1, 1], [1, 0]]
+            self.width = 2
+            self.height = 3
+            self.state = 1
+        else:
+            self.matrix = [[1, 1, 0], [0, 1, 1]]
+            self.width = 3
+            self.height = 2
+            self.state = 0
 
 
 if __name__ == '__main__':
