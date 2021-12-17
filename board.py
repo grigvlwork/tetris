@@ -412,6 +412,26 @@ class Piece_Z(Piece):
             self.height = 2
             self.state = 0
 
+def pause_game(screen):
+    pygame.draw.rect(screen,(125, 125, 125), (60, 180, 150, 50), 0, 3)    
+    text_x = 80
+    text_y = 185
+    font = pygame.font.SysFont("Times new roman", 40)
+    text = font.render("Paused", True, (100, 255, 100))
+    screen.blit(text, (text_x, text_y))
+    board.render(screen)
+    pygame.display.flip()
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE or event.key == pygame.K_F1:
+                    screen.fill((0, 0, 0))
+                    return
+    screen.fill((0, 0, 0))
+    return
 
 if __name__ == '__main__':
     pygame.init()
@@ -436,8 +456,11 @@ if __name__ == '__main__':
                     board.move_piece('down')
                 elif event.key == pygame.K_UP:
                     board.rotate_piece('right')
+                elif event.key == pygame.K_ESCAPE or event.key == pygame.K_F1:
+                    pause_game(screen)
             if event.type == EVENTMOVEDOWN:
                 board.move_piece('down')
+                
         screen.fill((0, 0, 0))
         board.render(screen)
         pygame.display.flip()
