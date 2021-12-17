@@ -82,7 +82,7 @@ class Board:
     def create_piece(self, name):
         new_piece = None
         if name == 'I':
-            new_piece = Piece_I((4, 0))
+            new_piece = Piece_I((3, 0))
             new_piece.color = (0, 255, 255)
         elif name == 'O':
             new_piece = Piece_O((4, 0))
