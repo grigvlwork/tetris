@@ -47,7 +47,8 @@ class Board:
                                                                 self.cell_size), 0)
                 else:
                     pygame.draw.circle(screen, (255, 255, 255), (j * self.cell_size + self.left + self.cell_size // 2,
-                                                                 (i - 2) * self.cell_size + self.top + self.cell_size // 2),
+                                                                 (
+                                                                             i - 2) * self.cell_size + self.top + self.cell_size // 2),
                                        1)
         y0 = self.piece.y
         for row in self.piece.matrix:
@@ -412,26 +413,35 @@ class Piece_Z(Piece):
             self.height = 2
             self.state = 0
 
+
 def pause_game(screen):
-    pygame.draw.rect(screen,(125, 125, 125), (60, 180, 150, 50), 0, 3)    
-    text_x = 80
-    text_y = 185
+    pygame.draw.rect(screen, (125, 125, 125), (100, 80, 150, 220), 0, 3)
     font = pygame.font.SysFont("Times new roman", 40)
     text = font.render("Paused", True, (100, 255, 100))
-    screen.blit(text, (text_x, text_y))
-    board.render(screen)
+    screen.blit(text, (115, 85))
+    font = pygame.font.SysFont("Times new roman", 20)
+    text = font.render("← Move left", True, (100, 255, 100))
+    screen.blit(text, (118, 145))
+    text = font.render("→ Move right", True, (100, 255, 100))
+    screen.blit(text, (118, 185))
+    text = font.render("↓   Drop(soft)", True, (100, 255, 100))
+    screen.blit(text, (118, 225))
+    text = font.render("Esc,F1 Pause", True, (100, 255, 100))
+    screen.blit(text, (118, 265))
     pygame.display.flip()
-    running = True
-    while running:
+    run = True
+    pygame.key.set_repeat(500)
+    while run:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                running = False
+                run = False
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE or event.key == pygame.K_F1:
-                    screen.fill((0, 0, 0))
-                    return
+                    run = False
+    pygame.key.set_repeat(200)
     screen.fill((0, 0, 0))
     return
+
 
 if __name__ == '__main__':
     pygame.init()
@@ -441,7 +451,7 @@ if __name__ == '__main__':
     board = Board(10, 22)
     board.new_piece()
     running = True
-    pygame.key.set_repeat(100)
+    pygame.key.set_repeat(200)
     pygame.time.set_timer(EVENTMOVEDOWN, 800)
     while running:
         for event in pygame.event.get():
@@ -460,7 +470,7 @@ if __name__ == '__main__':
                     pause_game(screen)
             if event.type == EVENTMOVEDOWN:
                 board.move_piece('down')
-                
+
         screen.fill((0, 0, 0))
         board.render(screen)
         pygame.display.flip()
