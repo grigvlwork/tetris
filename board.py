@@ -272,11 +272,15 @@ class Piece_I(Piece):
             self.width = 1
             self.height = 4
             self.state = 1
+            self.x += 1
+            self.y -= 1
         else:
             self.matrix = [[1, 1, 1, 1]]
             self.width = 4
             self.height = 1
             self.state = 0
+            self.x -= 1
+            self.y += 1
 
 
 class Piece_T(Piece):
@@ -296,18 +300,26 @@ class Piece_T(Piece):
             self.matrix = [[0, 1, 0], [1, 1, 1]]
             self.width = 3
             self.height = 2
+            self.x -= 1
+            self.y += 1
         elif self.state == 1:
             self.matrix = [[1, 0], [1, 1], [1, 0]]
             self.width = 2
             self.height = 3
+            self.x += 1
+            self.y -= 1
         elif self.state == 2:
             self.matrix = [[1, 1, 1], [0, 1, 0]]
             self.width = 3
             self.height = 2
+            self.x -= 1
+            self.y += 1
         elif self.state == 3:
             self.matrix = [[0, 1], [1, 1], [0, 1]]
             self.width = 2
             self.height = 3
+            self.x += 1
+            self.y -= 1
 
 
 class Piece_L(Piece):
