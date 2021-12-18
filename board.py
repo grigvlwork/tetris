@@ -80,6 +80,7 @@ class Board:
         screen.blit(text, (text_x, text_y))
 
     def create_piece(self, name):
+        self.check_gameover()
         new_piece = None
         if name == 'I':
             new_piece = Piece_I((3, 0))
@@ -143,7 +144,7 @@ class Board:
     def check_gameover(self):
         for i in range(2):
             for j in range(4, 6):
-                if self.board[i][j + 2] != 0:
+                if self.board[i + 1][j] != 0:
                     self.game_over()
 
     def fix_piece(self):
@@ -453,7 +454,7 @@ def pause_game(screen):
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE or event.key == pygame.K_F1:
                     run = False
-    pygame.key.set_repeat(200)
+    pygame.key.set_repeat(100)
     screen.fill((0, 0, 0))
     return
 
@@ -466,7 +467,7 @@ if __name__ == '__main__':
     board = Board(10, 22)
     board.new_piece()
     running = True
-    pygame.key.set_repeat(200)
+    pygame.key.set_repeat(100)
     pygame.time.set_timer(EVENTMOVEDOWN, 800)
     while running:
         for event in pygame.event.get():
