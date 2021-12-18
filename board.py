@@ -175,6 +175,9 @@ class Board:
             self.score += 300 * (self.level + 1)
         elif amount == 4:
             self.score += 1200 * (self.level + 1)
+        if self.lines < 200:
+            self.level = self.lines // 10 + 1
+            self.set_timer()
 
     def can_move(self, direction):
         if direction == 'left' and self.piece.x == 0:
@@ -339,6 +342,7 @@ class Piece_L(Piece):
             self.matrix = [[1, 0], [1, 0], [1, 1]]
             self.width = 2
             self.height = 3
+            self.x += 1
         elif self.state == 2:
             self.matrix = [[1, 1, 1], [1, 0, 0]]
             self.width = 3
@@ -347,6 +351,7 @@ class Piece_L(Piece):
             self.matrix = [[1, 1], [0, 1], [0, 1]]
             self.width = 2
             self.height = 3
+            self.x -= 1
 
 
 class Piece_J(Piece):
@@ -370,10 +375,12 @@ class Piece_J(Piece):
             self.matrix = [[1, 1], [1, 0], [1, 0]]
             self.width = 2
             self.height = 3
+            self.x += 1
         elif self.state == 2:
             self.matrix = [[1, 1, 1], [0, 0, 1]]
             self.width = 3
             self.height = 2
+            self.x -= 1
         elif self.state == 3:
             self.matrix = [[0, 1], [0, 1], [1, 1]]
             self.width = 2
