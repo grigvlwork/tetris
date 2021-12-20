@@ -1,12 +1,52 @@
 import pygame
 from random import shuffle
+from os.path import exists
 
 EVENTMOVEDOWN = pygame.USEREVENT + 1
 
 
+class InputBox:
+
+    def __init__(self, x, y, w, h, text=''):
+        self.rect = pygame.Rect(x, y, w, h)
+        self.color = COLOR_INACTIVE
+        self.text = text
+        self.txt_surface = FONT.render(text, True, self.color)
+        self.ready = False
+        self.active = False
+
+    def handle_event(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            # If the user clicked on the input_box rect.
+            if self.rect.collidepoint(event.pos):
+                self.active = not self.active
+            else:
+                self.active = False
+            self.color = COLOR_ACTIVE if self.active else COLOR_INACTIVE
+        if event.type == pygame.KEYDOWN:
+            if self.active:
+                if event.key == pygame.K_RETURN:
+                    self.ready = True
+                elif event.key == pygame.K_BACKSPACE:
+                    if len(self.text) > 16:
+                        self.text = self.text[:-1]
+                else:
+                    self.text += event.unicode
+                self.txt_surface = FONT.render(self.text, True, self.color)
+
+    def update(self):
+        # Resize the box if the text is too long.
+        width = max(200, self.txt_surface.get_width()+10)
+        self.rect.w = width
+
+    def draw(self, screen):
+        screen.blit(self.txt_surface, (self.rect.x+5, self.rect.y+5))
+        pygame.draw.rect(screen, self.color, self.rect, 2)
+
+
 class Board:
     # создание поля
-    def __init__(self, width, height):
+    def __init__(self, width, height, screen):
         self.width = width
         self.height = height
         self.board = [[0] * width for _ in range(height)]
@@ -23,6 +63,8 @@ class Board:
         shuffle(self.pool)
         self.next_piece = None
         self.piece = self.new_piece()
+        self.screen = screen
+
 
     def set_timer(self):
         time = (0.8 - ((self.level - 1) * 0.007)) ** (self.level - 1)
@@ -35,9 +77,10 @@ class Board:
         self.cell_size = cell_size
 
     def game_over(self):
+        self.print_hiscore()
         quit(0)
 
-    def render(self, screen):
+    def render(self):
         for i in range(2, self.height):
             for j in range(self.width):
                 if self.board[i][j] != 0:
@@ -46,7 +89,7 @@ class Board:
                                                                 self.cell_size,
                                                                 self.cell_size), 0)
                 else:
-                    pygame.draw.circle(screen, (255, 255, 255), (j * self.cell_size + self.left + self.cell_size // 2,
+                    pygame.draw.circle(self.screen, (255, 255, 255), (j * self.cell_size + self.left + self.cell_size // 2,
                                                                  (
                                                                              i - 2) * self.cell_size + self.top + self.cell_size // 2),
                                        1)
@@ -55,7 +98,7 @@ class Board:
             x0 = self.piece.x
             for cell in row:
                 if cell > 0:
-                    pygame.draw.rect(screen, self.piece.color, (x0 * self.cell_size + self.left,
+                    pygame.draw.rect(self.screen, self.piece.color, (x0 * self.cell_size + self.left,
                                                                 (y0 - 2) * self.cell_size + self.top,
                                                                 self.cell_size,
                                                                 self.cell_size), 0)
@@ -65,19 +108,18 @@ class Board:
 
     def draw_stat(self):
         font = pygame.font.SysFont("Times new roman", 20)
-        # font = pygame.font.Font(sys_font, 50)
         text = font.render(f"Level:{self.level}", True, (100, 255, 100))
         text_x = 230
         text_y = self.top + 10
-        screen.blit(text, (text_x, text_y))
+        self.screen.blit(text, (text_x, text_y))
         text = font.render(f"Lines:{self.lines} ", True, (100, 255, 100))
         text_x = self.left + 220
         text_y = self.top + 60
-        screen.blit(text, (text_x, text_y))
+        self.screen.blit(text, (text_x, text_y))
         text = font.render(f"Scores:{self.score} ", True, (100, 255, 100))
         text_x = self.left + 220
         text_y = self.top + 110
-        screen.blit(text, (text_x, text_y))
+        self.screen.blit(text, (text_x, text_y))
 
     def create_piece(self, name):
         self.check_gameover()
@@ -230,6 +272,30 @@ class Board:
         if self.can_rotate(direction):
             self.piece.rotate(direction)
 
+    def print_hiscore(self):
+        pygame.key.set_repeat(500)
+        ib = InputBox(10, 120, 300, 60, text="Enter your name: Player")
+        while not ib.ready:
+            self.screen.fill((0, 0, 0))
+            ib.draw(self.screen)
+            for event in pygame.event.get():
+                ib.handle_event(event)
+                ib.update()
+            pygame.display.flip()
+        _, self.name = ib.text.split(":")
+        if exists("hiscores.dat"):
+            try:
+                with open("hiscores.dat", mode="r", encoding="utf8") as f:
+                    data = f.readlines()
+                    print(data)
+            except Exception:
+                print("Error: \n", Exception)
+        else:
+            try:
+                with open("hiscores.dat", mode="w", encoding="utf8") as f:
+                    print(f"{self.name}:{self.score}", file=f)
+            except Exception:
+                print("Error: \n", Exception)
 
 class Piece:
     def __init__(self, position):
@@ -464,11 +530,14 @@ if __name__ == '__main__':
     size = width, height = 350, 450
     screen = pygame.display.set_mode(size)
     pygame.display.set_caption('Тетрис')
-    board = Board(10, 22)
+    board = Board(10, 22, screen)
     board.new_piece()
     running = True
     pygame.key.set_repeat(100)
     pygame.time.set_timer(EVENTMOVEDOWN, 800)
+    FONT = pygame.font.SysFont("Arial", 30)
+    COLOR_INACTIVE = pygame.Color('lightskyblue3')
+    COLOR_ACTIVE = pygame.Color('dodgerblue2')
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -486,8 +555,7 @@ if __name__ == '__main__':
                     pause_game(screen)
             if event.type == EVENTMOVEDOWN:
                 board.move_piece('down')
-
         screen.fill((0, 0, 0))
-        board.render(screen)
+        board.render()
         pygame.display.flip()
     pygame.quit()
