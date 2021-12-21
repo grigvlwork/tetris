@@ -268,6 +268,7 @@ class Board:
     def print_hiscore(self):
         pygame.key.set_repeat(500)
         ib = InputBox(10, 120, 300, 60, text="Enter your name: Player")
+        leaders = []
         while not ib.ready:
             self.screen.fill((0, 0, 0))
             ib.draw(self.screen)
@@ -276,11 +277,20 @@ class Board:
                 ib.update()
             pygame.display.flip()
         _, self.name = ib.text.split(":")
+        self.name = self.name.strip()
         if exists("hiscores.dat"):
             try:
                 with open("hiscores.dat", mode="r", encoding="utf8") as f:
                     data = f.readlines()
-                    print(data)
+                for row in data:
+                    name, score = row.split(':')
+                    score = int(score.strip())
+                    leaders.append([name.strip(), score])
+                leaders.append([self.name, self.score])
+                leaders.sort(key=lambda x:-x[1])
+                with open("hiscores.dat", mode="w", encoding="utf8") as f:
+                    for lead in leaders:
+                        print(f'{lead[0]}:{lead[1]}', file=f)
             except Exception:
                 print("Error: \n", Exception)
         else:
@@ -289,6 +299,23 @@ class Board:
                     print(f"{self.name}:{self.score}", file=f)
             except Exception:
                 print("Error: \n", Exception)
+        self.screen.fill((125, 125, 125))
+        font = pygame.font.SysFont("Times new roman", 30)
+        for i in range(len(leaders)):
+            text = font.render(f"{i}) {leaders[i][0]}:{leaders[i][1]}", True, (100, 255, 100))
+            self.screen.blit(text, (40, 10 + i * 35))
+        text = font.render("Press any key to exit", True, (100, 255, 100))
+        self.screen.blit(text, (40, 10 + len(leaders) * 35))
+        pygame.display.flip()
+        run = True
+        while run:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    run = False
+                if event.type == pygame.KEYDOWN:
+                    run = False
+
+
 
 class Piece:
     def __init__(self, position):
