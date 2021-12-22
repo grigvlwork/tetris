@@ -2,7 +2,7 @@ import pygame
 from random import shuffle
 from os.path import exists
 import zlib
-
+import hashlib
 
 EVENTMOVEDOWN = pygame.USEREVENT + 1
 
@@ -265,6 +265,17 @@ class Board:
         if self.can_rotate(direction):
             self.piece.rotate(direction)
 
+    def add_hash(self, text):
+        hash_object = hashlib.sha1(text)
+        hex_dig = hash_object.hexdigest().encode("utf-8")
+        return hex_dig + text
+
+    def check_hash(self, text):
+        hex_dig = text[:40]
+        text = text[40:]
+        hash_object = hashlib.sha1(text)
+        return hex_dig == hash_object.hexdigest().encode("utf-8")
+
     def print_hiscore(self):
         pygame.key.set_repeat(500)
         ib = InputBox(10, 120, 300, 60, text="Enter your name: Player")
@@ -282,37 +293,47 @@ class Board:
             try:
                 with open("hiscores.dat", mode="rb") as f:
                     data = f.read()
-                decompressed_data = zlib.decompress(data).decode("utf-8").strip()
-                lines = decompressed_data.split("\n")
-                for row in lines:
-                    if ':' in row:
-                        name, score = row.split(':')
-                        score = int(score.strip())
-                        leaders.append([name.strip(), score])
-                leaders.append([self.name, self.score])
-                leaders.sort(key=lambda x: -x[1])
-                with open("hiscores.dat", mode="wb") as f:
-                    text = ''
-                    for lead in leaders:
-                        text += f'{lead[0]}:{lead[1]}\n'
-                    text = text[:-1]
-                    comp = zlib.compress(text.encode("utf-8"), zlib.Z_BEST_COMPRESSION)
-                    f.write(comp)
+                decompressed_data = zlib.decompress(data)
+                if self.check_hash(decompressed_data):
+                    decompressed_data = decompressed_data[40:].decode("utf-8").strip()
+                    lines = decompressed_data.split("\n")
+                    for row in lines:
+                        if ':' in row:
+                            name, score = row.split(':')
+                            score = int(score.strip())
+                            leaders.append([name.strip(), score])
+                    leaders.append([self.name, self.score])
+                    leaders.sort(key=lambda x: -x[1])
+                    with open("hiscores.dat", mode="wb") as f:
+                        text = ''
+                        for lead in leaders:
+                            text += f'{lead[0]}:{lead[1]}\n'
+                        text = self.add_hash(text[:-1].encode("utf-8"))
+                        comp = zlib.compress(text, zlib.Z_BEST_COMPRESSION)
+                        f.write(comp)
+                else:
+                    with open("hiscores.dat", mode="wb") as f:
+                        text = f"{self.name}:{self.score}"
+                        text = self.add_hash(text[:-1].encode("utf-8"))
+                        leaders.append([self.name, self.score])
+                        comp = zlib.compress(text.encode, zlib.Z_BEST_COMPRESSION)
+                        f.write(comp)
             except Exception:
                 print("Error: \n", Exception)
         else:
             try:
                 with open("hiscores.dat", mode="wb") as f:
-                    text = f"{self.name}:{self.score}"
+                    text = f"{self.name}:{self.score}".encode("utf-8")
+                    text = self.add_hash(text)
                     leaders.append([self.name, self.score])
-                    comp = zlib.compress(text.encode("utf-8"), zlib.Z_BEST_COMPRESSION)
+                    comp = zlib.compress(text, zlib.Z_BEST_COMPRESSION)
                     f.write(comp)
             except Exception:
                 print("Error: \n", Exception)
         self.screen.fill((125, 125, 125))
         font = pygame.font.SysFont("Times new roman", 30)
         for i in range(len(leaders)):
-            text = font.render(f"{i}) {leaders[i][0]}:{leaders[i][1]}", True, (100, 255, 100))
+            text = font.render(f"{i + 1}) {leaders[i][0]}:{leaders[i][1]}", True, (100, 255, 100))
             self.screen.blit(text, (40, 10 + i * 35))
         text = font.render("Press any key to exit", True, (100, 255, 100))
         self.screen.blit(text, (40, 10 + len(leaders) * 35))
