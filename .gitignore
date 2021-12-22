@@ -1,4 +1,6 @@
 venv/
 .idea/
 *.md.backup
+test*.py
+
 

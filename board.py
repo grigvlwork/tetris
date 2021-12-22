@@ -1,6 +1,8 @@
 import pygame
 from random import shuffle
 from os.path import exists
+import zlib
+
 
 EVENTMOVEDOWN = pygame.USEREVENT + 1
 
@@ -58,12 +60,10 @@ class Board:
         self.piece = self.new_piece()
         self.screen = screen
 
-
     def set_timer(self):
         time = (0.8 - ((self.level - 1) * 0.007)) ** (self.level - 1)
         pygame.time.set_timer(EVENTMOVEDOWN, int(time * 1000))
 
-    # настройка внешнего вида
     def set_view(self, left, top, cell_size):
         self.left = left
         self.top = top
@@ -280,23 +280,33 @@ class Board:
         self.name = self.name.strip()
         if exists("hiscores.dat"):
             try:
-                with open("hiscores.dat", mode="r", encoding="utf8") as f:
-                    data = f.readlines()
-                for row in data:
-                    name, score = row.split(':')
-                    score = int(score.strip())
-                    leaders.append([name.strip(), score])
+                with open("hiscores.dat", mode="rb") as f:
+                    data = f.read()
+                decompressed_data = zlib.decompress(data).decode("utf-8").strip()
+                lines = decompressed_data.split("\n")
+                for row in lines:
+                    if ':' in row:
+                        name, score = row.split(':')
+                        score = int(score.strip())
+                        leaders.append([name.strip(), score])
                 leaders.append([self.name, self.score])
-                leaders.sort(key=lambda x:-x[1])
-                with open("hiscores.dat", mode="w", encoding="utf8") as f:
+                leaders.sort(key=lambda x: -x[1])
+                with open("hiscores.dat", mode="wb") as f:
+                    text = ''
                     for lead in leaders:
-                        print(f'{lead[0]}:{lead[1]}', file=f)
+                        text += f'{lead[0]}:{lead[1]}\n'
+                    text = text[:-1]
+                    comp = zlib.compress(text.encode("utf-8"), zlib.Z_BEST_COMPRESSION)
+                    f.write(comp)
             except Exception:
                 print("Error: \n", Exception)
         else:
             try:
-                with open("hiscores.dat", mode="w", encoding="utf8") as f:
-                    print(f"{self.name}:{self.score}", file=f)
+                with open("hiscores.dat", mode="wb") as f:
+                    text = f"{self.name}:{self.score}"
+                    leaders.append([self.name, self.score])
+                    comp = zlib.compress(text.encode("utf-8"), zlib.Z_BEST_COMPRESSION)
+                    f.write(comp)
             except Exception:
                 print("Error: \n", Exception)
         self.screen.fill((125, 125, 125))
@@ -314,7 +324,6 @@ class Board:
                     run = False
                 if event.type == pygame.KEYDOWN:
                     run = False
-
 
 
 class Piece:
