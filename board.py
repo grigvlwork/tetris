@@ -100,16 +100,17 @@ class Board:
         self.draw_stat()
 
     def draw_stat(self):
-        font = pygame.font.SysFont("Times new roman", 20)
-        text = font.render(f"Level:{self.level}", True, (100, 255, 100))
+        # font = pygame.font.SysFont("Times new roman", 20)
+        font = pygame.font.Font("fonts/FontsFree-Net-Tetris.ttf", 25)
+        text = font.render(f"Level: {self.level}", True, (100, 255, 100))
         text_x = 230
         text_y = self.top + 10
         self.screen.blit(text, (text_x, text_y))
-        text = font.render(f"Lines:{self.lines} ", True, (100, 255, 100))
+        text = font.render(f"Lines: {self.lines} ", True, (100, 255, 100))
         text_x = self.left + 220
         text_y = self.top + 60
         self.screen.blit(text, (text_x, text_y))
-        text = font.render(f"Scores:{self.score} ", True, (100, 255, 100))
+        text = font.render(f"Scores: {self.score} ", True, (100, 255, 100))
         text_x = self.left + 220
         text_y = self.top + 110
         self.screen.blit(text, (text_x, text_y))
@@ -577,7 +578,7 @@ def pause_game(screen):
 
 if __name__ == '__main__':
     pygame.init()
-    size = width, height = 350, 450
+    size = width, height = 450, 450
     screen = pygame.display.set_mode(size)
     pygame.display.set_caption('Тетрис')
     board = Board(10, 22, screen)
